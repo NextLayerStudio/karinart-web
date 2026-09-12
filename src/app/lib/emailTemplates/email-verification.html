@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="supported-color-schemes" content="dark light">
+  <title>Overenie emailu - Karin Art</title>
+  <style>
+    :root {
+      color-scheme: dark light;
+      supported-color-schemes: dark light;
+    }
+    /* Lock the intended dark design so light/dark clients don't invert it */
+    body, table, td { color-scheme: dark light; }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#0a0a0a;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#0a0a0a;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;border-collapse:collapse;">
+
+          <!-- Top accent bar -->
+          <tr>
+            <td style="height:4px;background:linear-gradient(90deg,#5a4e8a 0%,#c2a4df 50%,#7568ad 100%);border-radius:12px 12px 0 0;"></td>
+          </tr>
+
+          <!-- Poster header -->
+          <tr>
+            <td style="background:linear-gradient(145deg,#1a1028 0%,#0f0a18 45%,#0a0a0a 100%);padding:48px 32px 36px;text-align:center;border-left:1px solid rgba(194,164,223,0.15);border-right:1px solid rgba(194,164,223,0.15);">
+              <p style="margin:0 0 12px;font-size:12px;letter-spacing:4px;text-transform:uppercase;color:#c2a4df;">Karin Art</p>
+              <h1 style="margin:0 0 16px;font-size:36px;line-height:1.15;font-weight:400;color:#c2a4df;font-family:Georgia,'Times New Roman',serif;">Zákaznícky program</h1>
+              <p style="margin:0;font-size:16px;line-height:1.6;color:rgba(255,255,255,0.75);font-style:italic;">Som rada, že si tu — teším sa na teba</p>
+            </td>
+          </tr>
+
+          <!-- Main card -->
+          <tr>
+            <td style="background-color:#111111;padding:36px 32px;border-left:1px solid rgba(194,164,223,0.15);border-right:1px solid rgba(194,164,223,0.15);">
+              <p style="margin:0 0 20px;font-size:17px;line-height:1.7;color:#ffffff;">
+                Ahoj <span style="color:#c2a4df;font-weight:600;">{{FIRST_NAME}}</span>,
+              </p>
+              <p style="margin:0 0 16px;font-size:16px;line-height:1.7;color:rgba(255,255,255,0.78);">
+                ďakujem za záujem zapojiť sa do môjho zákazníckeho programu — veľmi ma to teší!
+              </p>
+              <p style="margin:0 0 28px;font-size:16px;line-height:1.7;color:rgba(255,255,255,0.78);">
+                Ešte jeden malý krok: klikni na tlačidlo nižšie a over svoj email, aby som mala istotu, že ti viem písať priamo ja a nič ti neunikne.
+              </p>
+
+              <!-- CTA poster block -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px;">
+                <tr>
+                  <td align="center" style="padding:28px 24px;background:linear-gradient(135deg,rgba(194,164,223,0.12) 0%,rgba(90,78,138,0.18) 100%);border:1px solid rgba(194,164,223,0.35);border-radius:16px;">
+                    <p style="margin:0 0 8px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#c2a4df;">Posledný krok</p>
+                    <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:rgba(255,255,255,0.8);">
+                      Stačí jedno kliknutie a si oficiálne v programe. Odkaz je platný <strong style="color:#ffffff;">24 hodín</strong>.
+                    </p>
+                    <a href="{{VERIFICATION_LINK}}" style="display:inline-block;background-color:#c2a4df;color:#000000;text-decoration:none;font-size:16px;font-weight:700;padding:16px 36px;border-radius:10px;box-shadow:0 8px 24px rgba(194,164,223,0.25);">
+                      Overiť môj email
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:rgba(255,255,255,0.45);">
+                Ak by tlačidlo nefungovalo, skopíruj si tento odkaz do prehliadača:
+              </p>
+              <p style="margin:0 0 28px;font-size:12px;line-height:1.6;word-break:break-all;">
+                <a href="{{VERIFICATION_LINK}}" style="color:#c2a4df;text-decoration:underline;">{{VERIFICATION_LINK}}</a>
+              </p>
+
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="padding-top:20px;border-top:1px solid rgba(194,164,223,0.15);">
+                    <p style="margin:0;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.7);">
+                      Teším sa na teba v štúdiu!
+                    </p>
+                    <p style="margin:8px 0 0;font-size:15px;line-height:1.7;color:#c2a4df;">
+                      S láskou,<br>
+                      <span style="font-family:Georgia,'Times New Roman',serif;font-size:18px;">Karin</span>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#080808;padding:24px 32px;text-align:center;border:1px solid rgba(194,164,223,0.1);border-top:none;border-radius:0 0 12px 12px;">
+              <p style="margin:0 0 8px;font-size:12px;color:rgba(255,255,255,0.4);">
+                Ak si sa neregistroval(a), tento email pokojne ignoruj.
+              </p>
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">
+                <a href="https://karinart.sk" style="color:#c2a4df;text-decoration:none;">karinart.sk</a>
+                &nbsp;·&nbsp;
+                <a href="mailto:info@karinart.sk" style="color:#c2a4df;text-decoration:none;">info@karinart.sk</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
