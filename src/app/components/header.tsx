@@ -445,7 +445,7 @@ export default function Header({ brand, basePath }: HeaderProps) {
                   Zákaznícka zóna
                 </NavLink>
               )}
-              <NavLink href={switchPath} onClick={closeMenu} large={false}>
+              <NavLink href={switchPath} onClick={closeMenu}>
                 {switchLabel}
               </NavLink>
             </section>

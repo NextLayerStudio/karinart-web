@@ -144,14 +144,15 @@ export default function Home() {
         {/* Dark Overlay */}
         <div className="absolute inset-0 bg-black opacity-60"></div>
 
+        <Link
+          href="/beauty-sphere"
+          className="group absolute top-16 right-4 sm:top-8 sm:right-8 z-20 inline-flex items-center gap-2 text-white text-lg sm:text-2xl md:text-3xl font-semibold hover:text-[#c2a4df] transition-colors no-underline"
+        >
+          <span>Karin Beauty Sphere</span>
+          <span className="transition-transform group-hover:translate-x-1">→</span>
+        </Link>
+
         <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center text-center">
-          <Link
-            href="/beauty-sphere"
-            className="group inline-flex items-center gap-2 mb-5 sm:mb-7 px-4 py-2 rounded-full border border-[#c2a4df]/50 bg-white/5 backdrop-blur-sm text-white/90 text-xs sm:text-sm font-medium hover:bg-[#c2a4df]/15 hover:border-[#c2a4df] transition-colors no-underline"
-          >
-            <span>✨ Objavte aj Karin Beauty Sphere</span>
-            <span className="transition-transform group-hover:translate-x-0.5">→</span>
-          </Link>
           <h1 className="hero-display text-white">
             <span>Vitajte v Umení</span>
             <span>Atramentu</span>
