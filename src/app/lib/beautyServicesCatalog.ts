@@ -159,6 +159,24 @@ export const beautyBookableServices: BeautyBookableService[] = [
     description:
       "Individuálne ošetrenie prispôsobené aktuálnym potrebám vašej pleti po dôkladnej diagnostike.",
   },
+  {
+    id: "carboxy-decaar",
+    categorySlug: "osetrenia-pleti",
+    title: "Carboxy ošetrenie DÉCAAR",
+    priceEUR: 55,
+    durationHours: 1,
+    description:
+      "Carboxy ošetrenie DÉCAAR je neinvazívna procedúra, ktorá intenzívne regeneruje, okysličuje a revitalizuje pleť. Podporuje mikrocirkuláciu, stimuluje prirodzenú tvorbu kolagénu a pomáha obnoviť pevnosť, pružnosť a zdravý jas pokožky. Medzi benefity ošetrenia patrí redukcia vrások, spevnenie a hydratácia pleti, zjednotenie tónu a rozjasnenie, zlepšenie elasticity a podpora prirodzenej regenerácie a tvorby kolagénu.",
+  },
+  {
+    id: "algae-peeling",
+    categorySlug: "osetrenia-pleti",
+    title: "Algae peeling",
+    priceEUR: 60,
+    durationHours: 1,
+    description:
+      "Profesionálny peeling z lúpaných rias, ktorý exfoliuje pokožku a poskytuje žiarivú a osvieženú pleť. Eliminuje čierne bodky a drsnosť, stimuluje prietok krvi a pomáha pri začervenaní, opuchnutí a povrchových vráskach. Kombinácia prírodných zložiek na báze byliniek z rias a perfluorokarbónu je vhodná aj pre najcitlivejšiu pokožku a pomáha pri akné, poškodenej a mastnej pokožke, vráskach a ochabnutej pokožke, suchej pokožke, pigmentáciách a starnutí, jazvách aj rozšírených póroch. Odstraňuje odumreté bunky, posilňuje pokožku a zanecháva pleť vyplnenú, čistú a žiarivú, znižuje zápaly a zlepšuje krvný obeh.",
+  },
 ];
 
 export function getBeautyBookableService(id: string): BeautyBookableService | undefined {
