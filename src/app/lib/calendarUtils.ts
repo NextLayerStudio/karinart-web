@@ -201,6 +201,53 @@ export async function isTimeSlotAvailable(date: Date, time: string): Promise<boo
 }
 
 /**
+ * Fetches all active (pending or confirmed) tattoo + beauty appointments within a
+ * date range and returns, per date, the set of time slots already taken up by
+ * them (based on each appointment's own duration). Used to keep the public
+ * calendar from offering slots that someone already requested.
+ */
+export async function getBookedSlotsByDate(
+  startDate: Date,
+  endDate: Date
+): Promise<Map<string, Set<string>>> {
+  const [tattooAppointments, beautyAppointments] = await Promise.all([
+    prisma.tattooAppointment.findMany({
+      where: {
+        appointmentDate: { gte: startDate, lte: endDate },
+        status: { in: ['confirmed', 'pending'] },
+      },
+      select: { appointmentDate: true, appointmentTime: true, duration: true },
+    }),
+    prisma.beautyAppointment.findMany({
+      where: {
+        appointmentDate: { gte: startDate, lte: endDate },
+        status: { in: ['confirmed', 'pending'] },
+      },
+      select: { appointmentDate: true, appointmentTime: true, durationHours: true },
+    }),
+  ]);
+
+  const bookedByDate = new Map<string, Set<string>>();
+
+  const addBooked = (date: Date, time: string, duration: number | null) => {
+    const dateKey = date.toISOString().split('T')[0];
+    const blockedSlots = calculateTimeSlotsToBlock(time, duration || 3);
+    const existing = bookedByDate.get(dateKey) ?? new Set<string>();
+    blockedSlots.forEach((slot) => existing.add(slot));
+    bookedByDate.set(dateKey, existing);
+  };
+
+  tattooAppointments.forEach((appointment) =>
+    addBooked(appointment.appointmentDate, appointment.appointmentTime, appointment.duration)
+  );
+  beautyAppointments.forEach((appointment) =>
+    addBooked(appointment.appointmentDate, appointment.appointmentTime, appointment.durationHours)
+  );
+
+  return bookedByDate;
+}
+
+/**
  * Checks if two appointments overlap in time
  */
 export function appointmentsOverlap(

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
-import { generateAllTimeSlots } from '@/app/lib/calendarUtils';
+import { generateAllTimeSlots, getBookedSlotsByDate } from '@/app/lib/calendarUtils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,22 +13,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all day availabilities within the date range (regardless of isAvailable)
-    const dayAvailabilities = await prisma.dayAvailability.findMany({
-      where: {
-        date: {
-          gte: new Date(startDate),
-          lte: new Date(endDate)
+    const [dayAvailabilities, bookedByDate] = await Promise.all([
+      prisma.dayAvailability.findMany({
+        where: {
+          date: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
+          }
+        },
+        include: {
+          timeSlots: {
+            where: {
+              isAvailable: true
+            },
+            orderBy: { time: 'asc' }
+          }
         }
-      },
-      include: {
-        timeSlots: {
-          where: {
-            isAvailable: true
-          },
-          orderBy: { time: 'asc' }
-        }
-      }
-    });
+      }),
+      getBookedSlotsByDate(new Date(startDate), new Date(endDate)),
+    ]);
 
     // Build a map for quick lookup
     const dayMap = new Map(
@@ -47,26 +50,32 @@ export async function GET(request: NextRequest) {
     // Build the response for each day in the range
     const availability = allDates.map(dateStr => {
       const day = dayMap.get(dateStr);
+      const bookedSlots = bookedByDate.get(dateStr);
+
+      let isAvailable: boolean;
+      let timeSlots: string[];
+
       if (day) {
         // Day has explicit availability settings
-        return {
-          date: dateStr,
-          isAvailable: day.isAvailable,
-          timeSlots: day.timeSlots.map(slot => slot.time)
-        };
+        isAvailable = day.isAvailable;
+        timeSlots = day.timeSlots.map(slot => slot.time);
       } else {
         // Day has no explicit settings - use default logic
         const date = new Date(dateStr);
         const dayOfWeek = date.getDay();
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        const defaultTimeSlots = generateAllTimeSlots();
-        
-        return {
-          date: dateStr,
-          isAvailable: !isWeekend, // Weekdays available, weekends unavailable by default
-          timeSlots: !isWeekend ? defaultTimeSlots : [] // All time slots available for weekdays, none for weekends
-        };
+
+        isAvailable = !isWeekend; // Weekdays available, weekends unavailable by default
+        timeSlots = !isWeekend ? generateAllTimeSlots() : []; // All time slots available for weekdays, none for weekends
       }
+
+      // Exclude slots already taken by a pending or confirmed appointment,
+      // so the calendar never offers a time someone else already requested.
+      if (bookedSlots) {
+        timeSlots = timeSlots.filter(time => !bookedSlots.has(time));
+      }
+
+      return { date: dateStr, isAvailable, timeSlots };
     });
 
     return NextResponse.json(availability);
