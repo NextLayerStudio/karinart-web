@@ -6,14 +6,7 @@ import sharp from 'sharp';
 import { randomUUID } from 'crypto';
 
 export const runtime = 'nodejs';
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb'
-    }
-  }
-};
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {

@@ -1,5 +1,5 @@
 import { put } from '@vercel/blob';
-import sharp from 'sharp';
+import sharp, { type Metadata } from 'sharp';
 import crypto from 'crypto';
 
 /**
@@ -139,9 +139,9 @@ export async function isValidImage(buffer: Buffer): Promise<boolean> {
 /**
  * Gets image metadata without processing
  * @param buffer - The image buffer
- * @returns Promise<sharp.Metadata> - Image metadata
+ * @returns Promise<Metadata> - Image metadata
  */
-export async function getImageMetadata(buffer: Buffer): Promise<sharp.Metadata> {
+export async function getImageMetadata(buffer: Buffer): Promise<Metadata> {
   if (!Buffer.isBuffer(buffer)) {
     throw new Error('Input must be a valid Buffer');
   }
