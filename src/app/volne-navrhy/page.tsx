@@ -19,15 +19,9 @@ interface FlashDesignItem {
 }
 
 function PriceTag({ design, className }: { design: FlashDesignItem; className: string }) {
-  if (design.onSale && design.salePrice !== null) {
-    return (
-      <span className="inline-flex items-baseline gap-2">
-        <span className="text-white/50 line-through text-sm font-normal">€{design.price.toFixed(2)}</span>
-        <span className={className}>€{design.salePrice.toFixed(2)}</span>
-      </span>
-    );
-  }
-  return <span className={className}>€{design.price.toFixed(2)}</span>;
+  // Pri zapnutej akcii zobrazujeme iba akciovú cenu, pôvodnú nie
+  const price = design.onSale && design.salePrice !== null ? design.salePrice : design.price;
+  return <span className={className}>€{price.toFixed(2)}</span>;
 }
 
 export default function Flashe() {
