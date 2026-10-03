@@ -10,6 +10,7 @@ datasource db {
 model SiteSettings {
   id                String   @id @default("singleton")
   inkProgramEnabled Boolean  @default(true)
+  flashSaleEnabled  Boolean  @default(false)
   updatedAt         DateTime @updatedAt
 }
 
@@ -234,6 +235,7 @@ model FlashDesign {
   imageUrl  String
   title     String
   price     Float
+  salePrice Float?
   reserved  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

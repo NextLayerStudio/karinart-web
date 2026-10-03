@@ -52,7 +52,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const { title, price, reserved } = await request.json();
+    const { title, price, salePrice, reserved } = await request.json();
 
     const flashDesign = await prisma.flashDesign.findUnique({
       where: { id },
@@ -73,11 +73,20 @@ export async function PUT(
       );
     }
 
+    // Validate sale price if provided (null = remove sale price)
+    if (salePrice !== undefined && salePrice !== null && (isNaN(salePrice) || salePrice < 0)) {
+      return NextResponse.json(
+        { error: 'Invalid sale price. Must be a positive number' },
+        { status: 400 }
+      );
+    }
+
     const updatedDesign = await prisma.flashDesign.update({
       where: { id },
       data: {
         title: title !== undefined ? title : flashDesign.title,
         price: price !== undefined ? price : flashDesign.price,
+        salePrice: salePrice !== undefined ? salePrice : flashDesign.salePrice,
         reserved: reserved !== undefined ? reserved : flashDesign.reserved,
       },
     });

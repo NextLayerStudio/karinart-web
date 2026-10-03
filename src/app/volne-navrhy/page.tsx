@@ -11,8 +11,22 @@ interface FlashDesignItem {
   imageUrl: string;
   title: string;
   price: number;
+  salePrice: number | null;
+  onSale: boolean;
   reserved: boolean;
   createdAt: string;
+}
+
+function PriceTag({ design, className }: { design: FlashDesignItem; className: string }) {
+  if (design.onSale && design.salePrice !== null) {
+    return (
+      <span className="inline-flex items-baseline gap-2">
+        <span className="text-white/50 line-through text-sm font-normal">€{design.price.toFixed(2)}</span>
+        <span className={className}>€{design.salePrice.toFixed(2)}</span>
+      </span>
+    );
+  }
+  return <span className={className}>€{design.price.toFixed(2)}</span>;
 }
 
 export default function Flashe() {
@@ -228,11 +242,16 @@ export default function Flashe() {
                         </div>
                       </div>
                     )}
+                    {design.onSale && !design.reserved && (
+                      <div className="absolute top-2 left-2 bg-[#c2a4df] text-black px-2 py-1 rounded text-xs font-bold uppercase z-10">
+                        Akcia
+                      </div>
+                    )}
                     {/* Price Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-2 sm:p-3 rounded-b-md">
                       <div className="flex items-center justify-between gap-2 min-w-0">
-                        <span className="text-[#c2a4df] font-bold text-base sm:text-lg shrink-0">
-                          €{design.price.toFixed(2)}
+                        <span className="shrink-0">
+                          <PriceTag design={design} className="text-[#c2a4df] font-bold text-base sm:text-lg" />
                         </span>
                         <span className="text-white/80 text-xs hidden sm:inline">
                           Kliknite pre detail
@@ -243,7 +262,7 @@ export default function Flashe() {
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md">
                       <div className="text-center px-3 max-w-full">
                         <p className="text-white font-semibold mb-2 truncate">{design.title}</p>
-                        <p className="text-[#c2a4df] text-2xl font-bold">€{design.price.toFixed(2)}</p>
+                        <p><PriceTag design={design} className="text-[#c2a4df] text-2xl font-bold" /></p>
                       </div>
                     </div>
                   </div>
@@ -321,7 +340,7 @@ export default function Flashe() {
             onClick={(e) => e.stopPropagation()}
           >
             <p className="text-white font-semibold text-base sm:text-lg mb-0.5 truncate">{selectedDesign.title}</p>
-            <p className="text-[#c2a4df] text-xl sm:text-2xl font-bold">€{selectedDesign.price.toFixed(2)}</p>
+            <p><PriceTag design={selectedDesign} className="text-[#c2a4df] text-xl sm:text-2xl font-bold" /></p>
           </div>
         </div>
       )}

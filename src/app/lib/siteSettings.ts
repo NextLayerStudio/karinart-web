@@ -20,3 +20,16 @@ export async function setInkProgramEnabled(enabled: boolean) {
     create: { id: SETTINGS_ID, inkProgramEnabled: enabled },
   });
 }
+
+export async function isFlashSaleEnabled(): Promise<boolean> {
+  const settings = await getSiteSettings();
+  return settings.flashSaleEnabled;
+}
+
+export async function setFlashSaleEnabled(enabled: boolean) {
+  return prisma.siteSettings.upsert({
+    where: { id: SETTINGS_ID },
+    update: { flashSaleEnabled: enabled },
+    create: { id: SETTINGS_ID, flashSaleEnabled: enabled },
+  });
+}

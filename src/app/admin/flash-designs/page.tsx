@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getAdminUser } from '@/app/lib/auth';
 import prisma from '@/app/lib/prisma';
+import { isFlashSaleEnabled } from '@/app/lib/siteSettings';
 import FlashDesignsManagementClient from './FlashDesignsManagementClient';
 
 // Force dynamic rendering
@@ -14,9 +15,12 @@ export default async function AdminFlashDesigns() {
   }
 
   // Fetch flash designs
-  const flashDesigns = await prisma.flashDesign.findMany({ 
-    orderBy: { createdAt: 'desc' } 
-  });
+  const [flashDesigns, flashSaleEnabled] = await Promise.all([
+    prisma.flashDesign.findMany({ 
+      orderBy: { createdAt: 'desc' } 
+    }),
+    isFlashSaleEnabled(),
+  ]);
 
   return (
     <FlashDesignsManagementClient 
@@ -26,6 +30,7 @@ export default async function AdminFlashDesigns() {
         createdAt: design.createdAt.toISOString(),
         updatedAt: design.updatedAt.toISOString(),
       }))}
+      flashSaleEnabled={flashSaleEnabled}
       username={user.name}
     />
   );

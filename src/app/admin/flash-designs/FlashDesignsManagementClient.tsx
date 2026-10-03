@@ -9,6 +9,7 @@ export type FlashDesignItem = {
   imageUrl: string;
   title: string;
   price: number;
+  salePrice: number | null;
   reserved: boolean;
   createdAt: string;
   updatedAt: string;
@@ -16,6 +17,7 @@ export type FlashDesignItem = {
 
 interface FlashDesignsManagementClientProps {
   flashDesigns: FlashDesignItem[];
+  flashSaleEnabled: boolean;
   username: string;
 }
 
@@ -28,18 +30,44 @@ interface UploadProgress {
 
 export default function FlashDesignsManagementClient({
   flashDesigns: initialFlashDesigns,
+  flashSaleEnabled: initialFlashSaleEnabled,
   username
 }: FlashDesignsManagementClientProps) {
   const [flashDesigns, setFlashDesigns] = useState<FlashDesignItem[]>(initialFlashDesigns);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filePrices, setFilePrices] = useState<{ [key: number]: string }>({});
+  const [fileSalePrices, setFileSalePrices] = useState<{ [key: number]: string }>({});
   const [fileNames, setFileNames] = useState<{ [key: number]: string }>({});
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [editingDesign, setEditingDesign] = useState<FlashDesignItem | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editPrice, setEditPrice] = useState('');
+  const [editSalePrice, setEditSalePrice] = useState('');
   const [editReserved, setEditReserved] = useState(false);
+  const [flashSaleEnabled, setFlashSaleEnabled] = useState(initialFlashSaleEnabled);
+  const [isTogglingSale, setIsTogglingSale] = useState(false);
+
+  const designsWithSalePrice = flashDesigns.filter(design => design.salePrice !== null).length;
+
+  const handleToggleSale = async () => {
+    setIsTogglingSale(true);
+    try {
+      const response = await fetch('/api/admin/settings/flash-sale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !flashSaleEnabled }),
+      });
+      if (!response.ok) throw new Error('Toggle failed');
+      const result = await response.json();
+      setFlashSaleEnabled(result.enabled);
+    } catch (error) {
+      console.error('Flash sale toggle error:', error);
+      alert('Nepodarilo sa prepnúť akciu');
+    } finally {
+      setIsTogglingSale(false);
+    }
+  };
 
   const handleFileSelect = useCallback((files: FileList | null) => {
     if (!files) return;
@@ -90,6 +118,18 @@ export default function FlashDesignsManagementClient({
       });
       return reindexed;
     });
+    setFileSalePrices(prev => {
+      const reindexed: { [key: number]: string } = {};
+      let newIndex = 0;
+      Object.keys(prev).forEach(key => {
+        const oldIndex = parseInt(key);
+        if (oldIndex !== index) {
+          reindexed[newIndex] = prev[oldIndex];
+          newIndex++;
+        }
+      });
+      return reindexed;
+    });
     setFileNames(prev => {
       const newNames = { ...prev };
       delete newNames[index];
@@ -114,6 +154,13 @@ export default function FlashDesignsManagementClient({
     }));
   };
 
+  const handleSalePriceChange = (index: number, value: string) => {
+    setFileSalePrices(prev => ({
+      ...prev,
+      [index]: value
+    }));
+  };
+
   const handleNameChange = (index: number, value: string) => {
     setFileNames(prev => ({
       ...prev,
@@ -121,7 +168,7 @@ export default function FlashDesignsManagementClient({
     }));
   };
 
-  const uploadImage = async (file: File, title: string, price: number) => {
+  const uploadImage = async (file: File, title: string, price: number, salePrice: number | null) => {
     try {
       // Create form data with file, title, and price
       // Server will handle compression and WebP conversion
@@ -129,6 +176,7 @@ export default function FlashDesignsManagementClient({
       formData.append('files', file);
       formData.append('titles', title || file.name.replace(/\.[^/.]+$/, ''));
       formData.append('prices', price.toString());
+      formData.append('salePrices', salePrice !== null ? salePrice.toString() : '');
 
       const response = await fetch('/api/flash-designs/upload', {
         method: 'POST',
@@ -158,6 +206,7 @@ export default function FlashDesignsManagementClient({
         imageUrl: uploadedData.imageUrl,
         title: title,
         price: price,
+        salePrice: salePrice,
         reserved: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -188,6 +237,21 @@ export default function FlashDesignsManagementClient({
       return;
     }
 
+    // Akciová cena je nepovinná, ale ak je vyplnená, musí byť platná
+    const invalidSalePrices: number[] = [];
+    selectedFiles.forEach((_, index) => {
+      const salePriceStr = fileSalePrices[index] || '';
+      const salePrice = parseFloat(salePriceStr);
+      if (salePriceStr && (isNaN(salePrice) || salePrice < 0)) {
+        invalidSalePrices.push(index + 1);
+      }
+    });
+
+    if (invalidSalePrices.length > 0) {
+      alert(`Chyba: Neplatné akciové ceny pre súbory: ${invalidSalePrices.join(', ')}. Nechajte prázdne alebo zadajte kladné číslo.`);
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress([]);
 
@@ -196,6 +260,8 @@ export default function FlashDesignsManagementClient({
       const title = fileNames[i] || file.name.replace(/\.[^/.]+$/, ''); // Use custom name or fallback to filename
       const priceStr = filePrices[i] || '0';
       const price = parseFloat(priceStr);
+      const salePriceStr = fileSalePrices[i] || '';
+      const salePrice = salePriceStr ? parseFloat(salePriceStr) : null;
       
       // Add to progress
       setUploadProgress(prev => [...prev, {
@@ -223,7 +289,7 @@ export default function FlashDesignsManagementClient({
         ));
 
         // Upload image
-        const newDesign = await uploadImage(file, title, price);
+        const newDesign = await uploadImage(file, title, price, salePrice);
         
         clearInterval(compressionInterval);
         
@@ -242,6 +308,7 @@ export default function FlashDesignsManagementClient({
 
     setSelectedFiles([]);
     setFilePrices({});
+    setFileSalePrices({});
     setFileNames({});
     setIsUploading(false);
   };
@@ -271,6 +338,7 @@ export default function FlashDesignsManagementClient({
     setEditingDesign(design);
     setEditTitle(design.title);
     setEditPrice(design.price.toString());
+    setEditSalePrice(design.salePrice !== null ? design.salePrice.toString() : '');
     setEditReserved(design.reserved || false);
   };
 
@@ -283,6 +351,12 @@ export default function FlashDesignsManagementClient({
       return;
     }
 
+    const salePrice = editSalePrice ? parseFloat(editSalePrice) : null;
+    if (salePrice !== null && (isNaN(salePrice) || salePrice < 0)) {
+      alert('Neplatná akciová cena. Nechajte prázdne alebo zadajte kladné číslo.');
+      return;
+    }
+
     try {
       const response = await fetch(`/api/flash-designs/${editingDesign.id}`, {
         method: 'PUT',
@@ -292,6 +366,7 @@ export default function FlashDesignsManagementClient({
         body: JSON.stringify({
           title: editTitle,
           price: price,
+          salePrice: salePrice,
           reserved: editReserved,
         }),
       });
@@ -304,6 +379,7 @@ export default function FlashDesignsManagementClient({
         setEditingDesign(null);
         setEditTitle('');
         setEditPrice('');
+        setEditSalePrice('');
         setEditReserved(false);
       } else {
         console.error('Failed to update design');
@@ -350,6 +426,29 @@ export default function FlashDesignsManagementClient({
                 </div>
               </div>
               
+              {/* Flash Sale Toggle */}
+              <div className={`bg-black/40 backdrop-blur-md border rounded-lg p-6 ${flashSaleEnabled ? 'border-green-500/60' : 'border-[#c2a4df]/20'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold text-white">Akcia na voľné návrhy</h3>
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${flashSaleEnabled ? 'bg-green-600 text-white' : 'bg-white/10 text-white/60'}`}>
+                    {flashSaleEnabled ? 'Zapnutá' : 'Vypnutá'}
+                  </span>
+                </div>
+                <p className="text-sm text-white/60 mb-4">
+                  {flashSaleEnabled
+                    ? 'Na webe sa teraz zobrazujú akciové ceny.'
+                    : 'Na webe sa teraz zobrazujú normálne ceny.'}
+                  {' '}Akciovú cenu má nastavenú {designsWithSalePrice} z {flashDesigns.length} návrhov — ostatné ostávajú za normálnu cenu.
+                </p>
+                <button
+                  onClick={handleToggleSale}
+                  disabled={isTogglingSale}
+                  className={`w-full font-semibold py-2 rounded-lg transition-colors disabled:opacity-50 text-white ${flashSaleEnabled ? 'bg-gray-600 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                  {isTogglingSale ? 'Ukladám...' : flashSaleEnabled ? 'Vypnúť akciu (normálne ceny)' : 'Zapnúť akciu (akciové ceny)'}
+                </button>
+              </div>
+
               {/* Upload Section */}
               <div className="bg-black/40 backdrop-blur-md border border-[#c2a4df]/20 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">
@@ -412,6 +511,18 @@ export default function FlashDesignsManagementClient({
                             className="w-full mt-1 px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#c2a4df]"
                           />
                         </div>
+                        <div className="mt-2">
+                          <label className="text-white/80 text-sm">Akciová cena (€, nepovinné):</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={fileSalePrices[index] || ''}
+                            onChange={(e) => handleSalePriceChange(index, e.target.value)}
+                            placeholder="bez akcie"
+                            className="w-full mt-1 px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#c2a4df]"
+                          />
+                        </div>
                       </div>
                     ))}
                     <button
@@ -471,7 +582,14 @@ export default function FlashDesignsManagementClient({
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2 rounded-b-lg">
-                      <p className="text-white font-semibold text-sm">€{design.price.toFixed(2)}</p>
+                      {design.salePrice !== null ? (
+                        <p className="text-sm">
+                          <span className={flashSaleEnabled ? 'text-white/50 line-through' : 'text-white font-semibold'}>€{design.price.toFixed(2)}</span>
+                          <span className={`ml-2 ${flashSaleEnabled ? 'text-green-400 font-semibold' : 'text-white/50'}`}>akcia €{design.salePrice.toFixed(2)}</span>
+                        </p>
+                      ) : (
+                        <p className="text-white font-semibold text-sm">€{design.price.toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2 rounded-lg">
                       <button
@@ -516,7 +634,7 @@ export default function FlashDesignsManagementClient({
                 />
               </div>
               <div>
-                <label className="block text-white/80 text-sm mb-1">Cena (€)</label>
+                <label className="block text-white/80 text-sm mb-1">Normálna cena (€)</label>
                 <input
                   type="number"
                   min="0"
@@ -525,6 +643,19 @@ export default function FlashDesignsManagementClient({
                   onChange={(e) => setEditPrice(e.target.value)}
                   className="w-full px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#c2a4df]"
                 />
+              </div>
+              <div>
+                <label className="block text-white/80 text-sm mb-1">Akciová cena (€)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={editSalePrice}
+                  onChange={(e) => setEditSalePrice(e.target.value)}
+                  placeholder="bez akcie"
+                  className="w-full px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#c2a4df]"
+                />
+                <p className="text-xs text-white/50 mt-1">Nechajte prázdne, ak tento návrh nemá byť v akcii.</p>
               </div>
               <div className="flex items-center space-x-2">
                 <input
@@ -550,6 +681,7 @@ export default function FlashDesignsManagementClient({
                     setEditingDesign(null);
                     setEditTitle('');
                     setEditPrice('');
+                    setEditSalePrice('');
                     setEditReserved(false);
                   }}
                   className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg transition-colors"

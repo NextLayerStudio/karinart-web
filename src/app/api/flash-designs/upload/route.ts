@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
     const prices = formData.getAll('prices') as string[];
+    const salePrices = formData.getAll('salePrices') as string[];
     const titles = formData.getAll('titles') as string[];
 
     console.log('Form data parsed:', {
@@ -84,6 +85,8 @@ export async function POST(request: NextRequest) {
       const file = files[i];
       const priceStr = prices[i] || '0';
       const price = parseFloat(priceStr);
+      const salePriceStr = salePrices[i] || '';
+      const salePrice = salePriceStr ? parseFloat(salePriceStr) : null;
       const title = titles[i] || file.name.replace(/\.[^/.]+$/, ''); // Use custom title or fallback to filename
 
       try {
@@ -104,6 +107,12 @@ export async function POST(request: NextRequest) {
         // Validate price
         if (isNaN(price) || price < 0) {
           errors.push(`File ${i + 1}: Invalid price. Must be a positive number`);
+          continue;
+        }
+
+        // Validate sale price (optional)
+        if (salePrice !== null && (isNaN(salePrice) || salePrice < 0)) {
+          errors.push(`File ${i + 1}: Invalid sale price. Must be a positive number`);
           continue;
         }
 
@@ -185,6 +194,7 @@ export async function POST(request: NextRequest) {
               imageUrl: url,
               title: title, // Use custom title from form data
               price: price,
+              salePrice: salePrice,
             },
           });
           console.log(`File ${i + 1} database record created:`, { id: flashDesign.id });
