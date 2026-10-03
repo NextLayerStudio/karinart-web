@@ -236,6 +236,7 @@ model FlashDesign {
   title     String
   price     Float
   salePrice Float?
+  size      String?
   reserved  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

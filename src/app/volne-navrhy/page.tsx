@@ -13,6 +13,7 @@ interface FlashDesignItem {
   price: number;
   salePrice: number | null;
   onSale: boolean;
+  size: string | null;
   reserved: boolean;
   createdAt: string;
 }
@@ -261,7 +262,8 @@ export default function Flashe() {
                     {/* Hover effect */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-md">
                       <div className="text-center px-3 max-w-full">
-                        <p className="text-white font-semibold mb-2 truncate">{design.title}</p>
+                        <p className="text-white font-semibold mb-1 truncate">{design.title}</p>
+                        {design.size && <p className="text-white/70 text-sm mb-2">Veľkosť: {design.size}</p>}
                         <p><PriceTag design={design} className="text-[#c2a4df] text-2xl font-bold" /></p>
                       </div>
                     </div>
@@ -340,6 +342,7 @@ export default function Flashe() {
             onClick={(e) => e.stopPropagation()}
           >
             <p className="text-white font-semibold text-base sm:text-lg mb-0.5 truncate">{selectedDesign.title}</p>
+            {selectedDesign.size && <p className="text-white/70 text-sm mb-0.5">Orientačná veľkosť: {selectedDesign.size}</p>}
             <p><PriceTag design={selectedDesign} className="text-[#c2a4df] text-xl sm:text-2xl font-bold" /></p>
           </div>
         </div>

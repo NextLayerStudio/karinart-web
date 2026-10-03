@@ -52,7 +52,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const { title, price, salePrice, reserved } = await request.json();
+    const { title, price, salePrice, size, reserved } = await request.json();
 
     const flashDesign = await prisma.flashDesign.findUnique({
       where: { id },
@@ -87,6 +87,7 @@ export async function PUT(
         title: title !== undefined ? title : flashDesign.title,
         price: price !== undefined ? price : flashDesign.price,
         salePrice: salePrice !== undefined ? salePrice : flashDesign.salePrice,
+        size: size !== undefined ? (typeof size === 'string' && size.trim() ? size.trim() : null) : flashDesign.size,
         reserved: reserved !== undefined ? reserved : flashDesign.reserved,
       },
     });

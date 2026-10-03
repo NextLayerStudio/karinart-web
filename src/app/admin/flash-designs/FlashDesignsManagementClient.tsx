@@ -10,6 +10,7 @@ export type FlashDesignItem = {
   title: string;
   price: number;
   salePrice: number | null;
+  size: string | null;
   reserved: boolean;
   createdAt: string;
   updatedAt: string;
@@ -37,6 +38,7 @@ export default function FlashDesignsManagementClient({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [filePrices, setFilePrices] = useState<{ [key: number]: string }>({});
   const [fileSalePrices, setFileSalePrices] = useState<{ [key: number]: string }>({});
+  const [fileSizes, setFileSizes] = useState<{ [key: number]: string }>({});
   const [fileNames, setFileNames] = useState<{ [key: number]: string }>({});
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -44,6 +46,7 @@ export default function FlashDesignsManagementClient({
   const [editTitle, setEditTitle] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editSalePrice, setEditSalePrice] = useState('');
+  const [editSize, setEditSize] = useState('');
   const [editReserved, setEditReserved] = useState(false);
   const [flashSaleEnabled, setFlashSaleEnabled] = useState(initialFlashSaleEnabled);
   const [isTogglingSale, setIsTogglingSale] = useState(false);
@@ -118,6 +121,18 @@ export default function FlashDesignsManagementClient({
       });
       return reindexed;
     });
+    setFileSizes(prev => {
+      const reindexed: { [key: number]: string } = {};
+      let newIndex = 0;
+      Object.keys(prev).forEach(key => {
+        const oldIndex = parseInt(key);
+        if (oldIndex !== index) {
+          reindexed[newIndex] = prev[oldIndex];
+          newIndex++;
+        }
+      });
+      return reindexed;
+    });
     setFileSalePrices(prev => {
       const reindexed: { [key: number]: string } = {};
       let newIndex = 0;
@@ -161,6 +176,13 @@ export default function FlashDesignsManagementClient({
     }));
   };
 
+  const handleSizeChange = (index: number, value: string) => {
+    setFileSizes(prev => ({
+      ...prev,
+      [index]: value
+    }));
+  };
+
   const handleNameChange = (index: number, value: string) => {
     setFileNames(prev => ({
       ...prev,
@@ -168,7 +190,7 @@ export default function FlashDesignsManagementClient({
     }));
   };
 
-  const uploadImage = async (file: File, title: string, price: number, salePrice: number | null) => {
+  const uploadImage = async (file: File, title: string, price: number, salePrice: number | null, size: string) => {
     try {
       // Create form data with file, title, and price
       // Server will handle compression and WebP conversion
@@ -177,6 +199,7 @@ export default function FlashDesignsManagementClient({
       formData.append('titles', title || file.name.replace(/\.[^/.]+$/, ''));
       formData.append('prices', price.toString());
       formData.append('salePrices', salePrice !== null ? salePrice.toString() : '');
+      formData.append('sizes', size);
 
       const response = await fetch('/api/flash-designs/upload', {
         method: 'POST',
@@ -207,6 +230,7 @@ export default function FlashDesignsManagementClient({
         title: title,
         price: price,
         salePrice: salePrice,
+        size: size.trim() || null,
         reserved: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -262,6 +286,7 @@ export default function FlashDesignsManagementClient({
       const price = parseFloat(priceStr);
       const salePriceStr = fileSalePrices[i] || '';
       const salePrice = salePriceStr ? parseFloat(salePriceStr) : null;
+      const size = fileSizes[i] || '';
       
       // Add to progress
       setUploadProgress(prev => [...prev, {
@@ -289,7 +314,7 @@ export default function FlashDesignsManagementClient({
         ));
 
         // Upload image
-        const newDesign = await uploadImage(file, title, price, salePrice);
+        const newDesign = await uploadImage(file, title, price, salePrice, size);
         
         clearInterval(compressionInterval);
         
@@ -309,6 +334,7 @@ export default function FlashDesignsManagementClient({
     setSelectedFiles([]);
     setFilePrices({});
     setFileSalePrices({});
+    setFileSizes({});
     setFileNames({});
     setIsUploading(false);
   };
@@ -339,6 +365,7 @@ export default function FlashDesignsManagementClient({
     setEditTitle(design.title);
     setEditPrice(design.price.toString());
     setEditSalePrice(design.salePrice !== null ? design.salePrice.toString() : '');
+    setEditSize(design.size ?? '');
     setEditReserved(design.reserved || false);
   };
 
@@ -367,6 +394,7 @@ export default function FlashDesignsManagementClient({
           title: editTitle,
           price: price,
           salePrice: salePrice,
+          size: editSize,
           reserved: editReserved,
         }),
       });
@@ -380,6 +408,7 @@ export default function FlashDesignsManagementClient({
         setEditTitle('');
         setEditPrice('');
         setEditSalePrice('');
+        setEditSize('');
         setEditReserved(false);
       } else {
         console.error('Failed to update design');
@@ -499,6 +528,16 @@ export default function FlashDesignsManagementClient({
                             className="w-full mt-1 px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#c2a4df]"
                           />
                         </div>
+                        <div className="mb-2">
+                          <label className="text-white/80 text-sm">Orientačná veľkosť (nepovinné):</label>
+                          <input
+                            type="text"
+                            value={fileSizes[index] || ''}
+                            onChange={(e) => handleSizeChange(index, e.target.value)}
+                            placeholder="napr. cca 10 × 15 cm"
+                            className="w-full mt-1 px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#c2a4df]"
+                          />
+                        </div>
                         <div>
                           <label className="text-white/80 text-sm">Cena (€):</label>
                           <input
@@ -582,6 +621,7 @@ export default function FlashDesignsManagementClient({
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2 rounded-b-lg">
+                      {design.size && <p className="text-white/60 text-xs truncate">{design.size}</p>}
                       {design.salePrice !== null ? (
                         <p className="text-sm">
                           <span className={flashSaleEnabled ? 'text-white/50 line-through' : 'text-white font-semibold'}>€{design.price.toFixed(2)}</span>
@@ -634,6 +674,16 @@ export default function FlashDesignsManagementClient({
                 />
               </div>
               <div>
+                <label className="block text-white/80 text-sm mb-1">Orientačná veľkosť</label>
+                <input
+                  type="text"
+                  value={editSize}
+                  onChange={(e) => setEditSize(e.target.value)}
+                  placeholder="napr. cca 10 × 15 cm"
+                  className="w-full px-3 py-2 bg-black/50 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#c2a4df]"
+                />
+              </div>
+              <div>
                 <label className="block text-white/80 text-sm mb-1">Normálna cena (€)</label>
                 <input
                   type="number"
@@ -682,6 +732,7 @@ export default function FlashDesignsManagementClient({
                     setEditTitle('');
                     setEditPrice('');
                     setEditSalePrice('');
+                    setEditSize('');
                     setEditReserved(false);
                   }}
                   className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg transition-colors"

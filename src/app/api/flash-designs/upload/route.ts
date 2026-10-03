@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
     const files = formData.getAll('files') as File[];
     const prices = formData.getAll('prices') as string[];
     const salePrices = formData.getAll('salePrices') as string[];
+    const sizes = formData.getAll('sizes') as string[];
     const titles = formData.getAll('titles') as string[];
 
     console.log('Form data parsed:', {
@@ -87,6 +88,7 @@ export async function POST(request: NextRequest) {
       const price = parseFloat(priceStr);
       const salePriceStr = salePrices[i] || '';
       const salePrice = salePriceStr ? parseFloat(salePriceStr) : null;
+      const size = sizes[i]?.trim() || null;
       const title = titles[i] || file.name.replace(/\.[^/.]+$/, ''); // Use custom title or fallback to filename
 
       try {
@@ -195,6 +197,7 @@ export async function POST(request: NextRequest) {
               title: title, // Use custom title from form data
               price: price,
               salePrice: salePrice,
+              size: size,
             },
           });
           console.log(`File ${i + 1} database record created:`, { id: flashDesign.id });
