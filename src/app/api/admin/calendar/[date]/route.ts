@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 import { getAdminUser } from '@/app/lib/auth';
-import { generateAllTimeSlots } from '@/app/lib/calendarUtils';
+import { generateAllTimeSlots, isBookableTimeSlot } from '@/app/lib/calendarUtils';
 
 interface TimeSlotData {
   time: string;
@@ -38,8 +38,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (dayAvailability) {
-      // Return existing day availability
-      return NextResponse.json(dayAvailability);
+      // Hide legacy 09:00/09:30 slots so the calendar starts at 10:00
+      return NextResponse.json({
+        ...dayAvailability,
+        timeSlots: dayAvailability.timeSlots.filter((slot) => isBookableTimeSlot(slot.time)),
+      });
     } else {
       // No explicit day availability record exists - check if it's a weekend
       const dayOfWeek = new Date(date).getDay();
@@ -80,10 +83,10 @@ export async function POST(request: NextRequest) {
     const { isAvailable, timeSlots } = body;
 
     // Use provided time slots or generate default ones
-    const slotsToCreate = timeSlots || generateAllTimeSlots().map(time => ({
+    const slotsToCreate = (timeSlots || generateAllTimeSlots().map(time => ({
       time,
       isAvailable: false // Default to unavailable
-    }));
+    }))).filter((slot: TimeSlotData) => isBookableTimeSlot(slot.time));
 
     // Upsert day availability
     const dayAvailability = await prisma.dayAvailability.upsert({
@@ -115,7 +118,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(dayAvailability);
+    return NextResponse.json({
+      ...dayAvailability,
+      timeSlots: dayAvailability.timeSlots.filter((slot) => isBookableTimeSlot(slot.time)),
+    });
   } catch (error) {
     console.error('Error creating day availability:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -138,10 +144,10 @@ export async function PUT(request: NextRequest) {
     const { isAvailable, timeSlots } = body;
 
     // Use provided time slots or generate default ones
-    const slotsToCreate = timeSlots || generateAllTimeSlots().map(time => ({
+    const slotsToCreate = (timeSlots || generateAllTimeSlots().map(time => ({
       time,
       isAvailable: false // Default to unavailable
-    }));
+    }))).filter((slot: TimeSlotData) => isBookableTimeSlot(slot.time));
 
     // Update or create day availability
     const dayAvailability = await prisma.dayAvailability.upsert({
@@ -173,7 +179,10 @@ export async function PUT(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(dayAvailability);
+    return NextResponse.json({
+      ...dayAvailability,
+      timeSlots: dayAvailability.timeSlots.filter((slot) => isBookableTimeSlot(slot.time)),
+    });
   } catch (error) {
     console.error('Error updating day availability:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -247,7 +256,10 @@ export async function PATCH(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(dayAvailability);
+    return NextResponse.json({
+      ...dayAvailability,
+      timeSlots: (dayAvailability?.timeSlots ?? []).filter((slot) => isBookableTimeSlot(slot.time)),
+    });
   } catch (error) {
     console.error('Error updating bulk availability:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

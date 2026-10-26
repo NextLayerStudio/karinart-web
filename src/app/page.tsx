@@ -34,16 +34,21 @@ export default function Home() {
     const fetchImages = async () => {
       try {
         const response = await fetch("/api/portfolio");
-        if (response.ok) {
-          const data = await response.json();
-          // Randomly shuffle and select 6 items
-          const shuffledItems = [...data]
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 6);
-          setPortfolioItems(shuffledItems);
-        } else {
-          console.error("Failed to fetch images");
+        if (!response.ok) {
+          console.warn("Portfolio API unavailable:", response.status);
+          return;
         }
+
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          console.warn("Portfolio API returned invalid data");
+          return;
+        }
+
+        const shuffledItems = [...data]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 6);
+        setPortfolioItems(shuffledItems);
       } catch (error) {
         console.error("Error fetching portfolio items:", error);
       }

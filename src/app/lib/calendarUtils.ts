@@ -100,12 +100,11 @@ export async function restoreCalendarForAppointment(
 }
 
 /**
- * Generates all possible time slots including half-hour intervals
+ * Generates all bookable time slots, from 10:00 to 17:00 including half-hour intervals.
  */
 export function generateAllTimeSlots(): string[] {
   const slots: string[] = [];
-  for (let hour = 9; hour <= 17; hour++) {
-    // Full hour
+  for (let hour = 10; hour <= 17; hour++) {
     slots.push(`${hour.toString().padStart(2, '0')}:00`);
     // Half hour (except for 17:30 which would be after closing)
     if (hour < 17) {
@@ -113,6 +112,10 @@ export function generateAllTimeSlots(): string[] {
     }
   }
   return slots;
+}
+
+export function isBookableTimeSlot(time: string): boolean {
+  return generateAllTimeSlots().includes(time);
 }
 
 /**

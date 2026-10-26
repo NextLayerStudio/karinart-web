@@ -6,7 +6,7 @@ import { Metadata } from "next";
 export default function About() {
   const [activeSections, setActiveSections] = useState<number[]>([]);
   const [typedSections, setTypedSections] = useState<number[]>([]);
-  const [currentTexts, setCurrentTexts] = useState<string[]>(["", "", "", "", "", ""]); // Store typed text for each section
+  const [currentTexts, setCurrentTexts] = useState<string[]>(["", "", "", "", ""]); // Store typed text for each section
 
   const toggleSection = (index: number) => {
     if (activeSections.includes(index)) {
@@ -37,7 +37,7 @@ export default function About() {
     {
       title: "Umelecký štýl",
       content:
-        "Mám rada japonský štýl tetovania, najmä japonské vzory ako koi kapre, sakury a celkovo tieňovanie. Nemám však vyslovene presný štýl – každé tetovanie je unikátne a prispôsobené klientovi.",
+        "Venujem sa hlavne fineline štýlu a mikrorealizmu, no občas vyjdem mimo môjho štýlu, podľa požiadavky klienta. Najradšej však robím florálne jemné tetovania.",
       speed: 30,
     },
     {
@@ -53,15 +53,9 @@ export default function About() {
       speed: 30,
     },
     {
-      title: "Inšpirácie a obľúbení umelci",
+      title: "Ďalšie práce",
       content:
-        "Zana.ink je pre mňa veľkou inšpiráciou, pretože ešte predtým, než som začala tetovať, som u nej bola na tetovaní a veľmi sa mi zapáčil jej štýl. Ďalej ma inšpiruje Samuel Potúček, ktorý z tetovania spravil niečo viac než len zábavu a kreslenie.",
-      speed: 30,
-    },
-    {
-      title: "Budúce ciele",
-      content:
-        "V budúcnosti by som chcela viacej tetovať realizmus a otvoriť si väčší salón, kde by som mohla zaučať a spolupracovať s novými talentmi.",
+        "Okrem tetovania sa venujem aj kozmetike, najmä neinvazívne protivráskové ošetrenia, ale aj špeciálne ošetrenia na akné, či laminácia obočia a rias.",
       speed: 30,
     },
   ];
@@ -82,9 +76,6 @@ export default function About() {
         break;
       case 4:
         startTypingForSection(4);
-        break;
-      case 5:
-        startTypingForSection(5);
         break;
     }
   };

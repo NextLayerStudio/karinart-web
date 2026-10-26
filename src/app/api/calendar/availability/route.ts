@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
-import { generateAllTimeSlots, getBookedSlotsByDate } from '@/app/lib/calendarUtils';
+import { generateAllTimeSlots, getBookedSlotsByDate, isBookableTimeSlot } from '@/app/lib/calendarUtils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       if (day) {
         // Day has explicit availability settings
         isAvailable = day.isAvailable;
-        timeSlots = day.timeSlots.map(slot => slot.time);
+        timeSlots = day.timeSlots.map(slot => slot.time).filter(isBookableTimeSlot);
       } else {
         // Day has no explicit settings - use default logic
         const date = new Date(dateStr);

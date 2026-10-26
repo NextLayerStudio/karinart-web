@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
+import { tattooPortfolioImages } from '@/app/lib/tattooPortfolioImages';
 
 export async function GET() {
   try {
@@ -9,17 +10,18 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(
-      tattooImages.map(img => ({
-        ...img,
-        createdAt: img.createdAt.toISOString(),
-      }))
-    );
+    const dbItems = tattooImages.map((img) => ({
+      ...img,
+      createdAt: img.createdAt.toISOString(),
+    }));
+
+    if (dbItems.length === 0) {
+      return NextResponse.json(tattooPortfolioImages);
+    }
+
+    return NextResponse.json(dbItems);
   } catch (error) {
-    console.error('Error fetching tattoo images:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch tattoo images' },
-      { status: 500 }
-    );
+    console.error('Error fetching tattoo images, using static gallery fallback:', error);
+    return NextResponse.json(tattooPortfolioImages);
   }
-} 
+}
